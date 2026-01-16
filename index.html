@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>关卡筛选工具</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; 
+            margin: 0; 
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 8px;
+        }
+        
+        .title { 
+            text-align: center; 
+            margin: 0 0 12px 0; 
+            color: #1e293b;
+            font-size: 18px;
+            font-weight: 700;
+            padding-top: 4px;
+            line-height: 1.3;
+        }
+        
+        .input-box { 
+            background: #ffffff; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .input-row { 
+            margin: 0 0 8px 0; 
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: calc(33.33% - 4px);
+        }
+        
+        label { 
+            font-weight: 600; 
+            margin-bottom: 3px; 
+            color: #4a5568;
+            font-size: 13px;
+        }
+        
+        input, select { 
+            padding: 8px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 5px; 
+            font-size: 14px; 
+            background-color: white;
+            transition: border-color 0.2s;
+            height: 38px;
+            -webkit-appearance: none;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #165dff;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #f8fafc;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* 修复复选框点击问题 */
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 自定义复选框样式确保可点击 */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #165dff;
+            border-radius: 4px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .checkbox-custom::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        #hasFairy:checked + .checkbox-custom {
+            background-color: #165dff;
+        }
+        
+        #hasFairy:checked + .checkbox-custom::after {
+            opacity: 1;
+        }
+        
+        /* 隐藏原生复选框 */
+        #hasFairy {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        button { 
+            padding: 12px; 
+            background: #165dff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 600;
+            width: 100%;
+            margin-top: 6px;
+            transition: background-color 0.2s, transform 0.1s;
+            letter-spacing: 0.5px;
+        }
+        
+        button:active {
+            background: #0d47a1; 
+            transform: scale(0.98);
+        }
+        
+        .base-info { 
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff); 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 12px 0; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .base-info p { 
+            font-size: 13px; 
+            margin: 5px 0; 
+            color: #1e293b; 
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .base-info p:last-child {
+            border-bottom: none;
+        }
+        
+        .base-info span { 
+            color: #165dff; 
+            font-weight: bold; 
+        }
+        
+        .result-title {
+            margin: 12px 0 6px 0; 
+            color: #2d3748;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 500px;
+        }
+        
+        th, td { 
+            border: 1px solid #e2e8f0; 
+            padding: 6px; 
+            text-align: center; 
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        th { 
+            background: #1e293b; 
+            color: white; 
+            font-weight: 600; 
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            padding: 8px 6px;
+        }
+        
+        tr:nth-child(even) { 
+            background: #f8fafc; 
+        }
+        
+        /* 只给第一行上色 */
+        tr:first-child.closest { 
+            background: #fff3cd; 
+            color: #856404; 
+            font-weight: bold; 
+        }
+        
+        .no-data { 
+            text-align: center; 
+            padding: 20px; 
+            color: #64748b; 
+            font-size: 13px; 
+        }
+        
+        .hint { 
+            color: #666; 
+            font-size: 12px; 
+            margin-top: 6px; 
+            line-height: 1.4;
+        }
+        
+        .formula {
+            background-color: #f1f5f9;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 8px 0;
+            font-size: 12px;
+            color: #475569;
+            border-left: 3px solid #165dff;
+            line-height: 1.4;
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 6px;
+            }
+            
+            .title {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            
+            .input-box {
+                padding: 10px;
+            }
+            
+            .input-group {
+                min-width: calc(50% - 3px);
+            }
+            
+            th, td {
+                padding: 5px;
+                font-size: 11px;
+            }
+            
+            .result-title {
+                font-size: 14px;
+            }
+            
+            .base-info p {
+                font-size: 12px;
+            }
+            
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            input, select {
+                height: 36px;
+                font-size: 13px;
+                padding: 6px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 4px;
+            }
+            
+            .title {
+                font-size: 15px;
+                margin-bottom: 8px;
+            }
+            
+            .input-row {
+                flex-direction: row;
+                align-items: stretch;
+            }
+            
+            .input-group {
+                min-width: calc(50% - 3px);
+                margin-bottom: 6px;
+            }
+            
+            th, td {
+                font-size: 10px;
+                padding: 4px;
+            }
+            
+            .formula {
+                font-size: 11px;
+                padding: 6px;
+            }
+            
+            .checkbox-group {
+                padding: 6px;
+                margin: 8px 0;
+            }
+            
+            .checkbox-group label {
+                font-size: 13px;
+            }
+            
+            .base-info {
+                padding: 8px;
+            }
+            
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            table {
+                min-width: 450px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .input-group {
+                min-width: 100%;
+            }
+            
+            .title {
+                font-size: 14px;
+            }
+            
+            th, td {
+                font-size: 9px;
+                padding: 3px;
+            }
+            
+            table {
+                min-width: 400px;
+            }
+        }
+        
+        /* 移除默认聚焦效果 */
+        input, select, button {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+        
+        /* 优化滚动条 */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">关卡筛选工具</h1>
+        
+        <div class="input-box">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>当前境域</label>
+                    <input type="number" id="currRealm" min="1" value="5" step="1">
+                </div>
+                <div class="input-group">
+                    <label>当前难度</label>
+                    <input type="number" id="currDiff" min="1" max="10" value="10" step="1">
+                </div>
+                <div class="input-group">
+                    <label>当前倍数</label>
+                    <input type="number" id="currMultiple" min="1" max="10" value="2" step="1">
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="input-group">
+                    <label>最大境域</label>
+                    <input type="number" id="maxRealm" min="1" value="10" step="1">
+                </div>
+                <div class="input-group">
+                    <label>筛选条件</label>
+                    <select id="diffType">
+                        <option value="below">生命≤当前</option>
+                        <option value="both">显示最相近</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 修复仙女复选框 -->
+            <div class="checkbox-group" onclick="toggleFairy()">
+                <input type="checkbox" id="hasFairy" checked>
+                <span class="checkbox-custom"></span>
+                <label for="hasFairy">有仙女（结算倍数+1）</label>
+            </div>
+            
+            <button onclick="calculateClosestLevels()">计算最相近10个关卡</button>
+            
+            <p class="hint">筛选规则：转生证更高 + 生命倍数相近 → 取前10</p>
+            
+            <div class="formula">
+                <strong>公式：</strong> {(境域-1)×5} × 倍数 + 难度×4<br>
+                <small>如有仙女则实际倍数为显示倍数+1</small>
+            </div>
+        </div>
+
+        <div class="base-info">
+            <p>✅ 当前转生证：<span id="currScore">0</span><br>
+               <small id="scoreDetail"></small></p>
+            <p>✅ 生命倍数阈值：<span id="currLife">0</span></p>
+            <p>✅ 符合条件数：<span id="totalLevels">0</span></p>
+        </div>
+
+        <h3 class="result-title">生命最相近的10个高收益关卡</h3>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>排序</th>
+                        <th>关卡组合<br>(境-难-倍)</th>
+                        <th>转生证</th>
+                        <th>生命倍数</th>
+                        <th>相差倍数</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTable">
+                    <tr><td colspan="5" class="no-data">点击计算按钮，展示结果</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const GAME_CONFIG = {
+            // 修正：难度×4 而不是 ×2
+            calcScore: (r, d, m, hasFairy = false) => {
+                const effectiveMultiple = hasFairy ? m + 1 : m;
+                return (r - 1) * 5 * effectiveMultiple + d * 4;
+            },
+            calcLife: (r, d, m) => {
+                const realmFactor = Math.log10(1000000) * r;
+                const diffFactor = Math.log10(3) * d;
+                const multipleFactor = Math.log10(10000) * m;
+                return Math.pow(10, realmFactor + diffFactor + multipleFactor);
+            },
+            maxDiff: 10,
+            maxMultiple: 10
+        };
+
+        function calculateClosestLevels() {
+            const currR = parseInt(document.getElementById('currRealm').value);
+            const currD = parseInt(document.getElementById('currDiff').value);
+            const currM = parseInt(document.getElementById('currMultiple').value);
+            const hasFairy = document.getElementById('hasFairy').checked;
+            const maxRealm = parseInt(document.getElementById('maxRealm').value);
+            const diffType = document.getElementById('diffType').value;
+
+            const currScore = GAME_CONFIG.calcScore(currR, currD, currM, hasFairy);
+            const currLife = GAME_CONFIG.calcLife(currR, currD, currM);
+            
+            document.getElementById('currScore').innerText = currScore;
+            document.getElementById('currLife').innerText = formatScientific(currLife);
+            
+            const effectiveMultiple = hasFairy ? currM + 1 : currM;
+            const baseRealmScore = (currR - 1) * 5;
+            // 修正：显示难度×4
+            const scoreDetail = `(${currR-1}×5)×${effectiveMultiple}+${currD}×4`;
+            document.getElementById('scoreDetail').innerText = scoreDetail;
+
+            const validLevels = [];
+            
+            for(let realm = 1; realm <= maxRealm; realm++) {
+                for(let diff = 1; diff <= GAME_CONFIG.maxDiff; diff++) {
+                    for(let multiple = 1; multiple <= GAME_CONFIG.maxMultiple; multiple++) {
+                        if(realm === currR && diff === currD && multiple === currM) continue;
+                        
+                        const levelScore = GAME_CONFIG.calcScore(realm, diff, multiple, false);
+                        const levelLife = GAME_CONFIG.calcLife(realm, diff, multiple);
+                        
+                        if(levelScore > currScore) {
+                            let diffMultiple;
+                            let isHigher = false;
+                            
+                            if (diffType === 'below') {
+                                if (levelLife <= currLife) {
+                                    diffMultiple = currLife / levelLife;
+                                } else {
+                                    continue;
+                                }
+                            } else {
+                                if (levelLife > currLife) {
+                                    diffMultiple = levelLife / currLife;
+                                    isHigher = true;
+                                } else {
+                                    diffMultiple = currLife / levelLife;
+                                }
+                            }
+                            
+                            validLevels.push({
+                                realm, diff, multiple,
+                                score: levelScore,
+                                life: levelLife,
+                                diffMultiple: diffMultiple,
+                                isHigher: isHigher,
+                                realmBaseScore: (realm - 1) * 5
+                            });
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('totalLevels').innerText = validLevels.length;
+
+            if(validLevels.length === 0) {
+                const resultTable = document.getElementById('resultTable');
+                resultTable.innerHTML = '<tr><td colspan="5" class="no-data">暂无符合条件的关卡</td></tr>';
+                return;
+            }
+
+            validLevels.sort((a, b) => {
+                const aDiffFromOne = Math.abs(a.diffMultiple - 1);
+                const bDiffFromOne = Math.abs(b.diffMultiple - 1);
+                
+                if (aDiffFromOne !== bDiffFromOne) {
+                    return aDiffFromOne - bDiffFromOne;
+                }
+                return b.score - a.score;
+            });
+
+            const top10Closest = validLevels.slice(0, 10);
+            const resultTable = document.getElementById('resultTable');
+            
+            resultTable.innerHTML = '';
+            top10Closest.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                if(index === 0) {
+                    tr.className = 'closest';
+                }
+                
+                let diffMultipleDisplay;
+                if (item.isHigher) {
+                    diffMultipleDisplay = `×${formatNumber(item.diffMultiple)}`;
+                } else {
+                    diffMultipleDisplay = `÷${formatNumber(item.diffMultiple)}`;
+                }
+                
+                const realmBaseScore = item.realmBaseScore;
+                const scoreDetail = `${realmBaseScore}×${item.multiple}+${item.diff}×4`;
+                
+                tr.innerHTML = `
+                    <td>${index+1}</td>
+                    <td><strong>${item.realm}-${item.diff}-${item.multiple}</strong></td>
+                    <td>${item.score}<br><small>${scoreDetail}</small></td>
+                    <td>${formatScientific(item.life)}</td>
+                    <td><strong>${diffMultipleDisplay}</strong></td>
+                `;
+                resultTable.appendChild(tr);
+            });
+        }
+        
+        function toggleFairy() {
+            const checkbox = document.getElementById('hasFairy');
+            checkbox.checked = !checkbox.checked;
+            const event = new Event('change');
+            checkbox.dispatchEvent(event);
+        }
+        
+        function formatScientific(num) {
+            if (num === 0) return "0";
+            if (num < 1e6) return num.toLocaleString();
+            
+            const exp = Math.floor(Math.log10(num));
+            const coeff = num / Math.pow(10, exp);
+            return `${coeff.toFixed(2)}e${exp}`;
+        }
+        
+        function formatNumber(num) {
+            if (num < 10) return num.toFixed(2);
+            if (num < 100) return num.toFixed(1);
+            return Math.round(num).toString();
+        }
+
+        window.onload = calculateClosestLevels;
+        
+        let calculateTimeout;
+        const inputs = document.querySelectorAll('input, select, #hasFairy');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.addEventListener('change', debouncedCalculate);
+            } else {
+                input.addEventListener('input', debouncedCalculate);
+            }
+        });
+        
+        function debouncedCalculate() {
+            clearTimeout(calculateTimeout);
+            calculateTimeout = setTimeout(calculateClosestLevels, 300);
+        }
+    </script>
+</body>
+</html>
