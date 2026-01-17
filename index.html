@@ -96,7 +96,6 @@
             user-select: none;
         }
         
-        /* 修复复选框点击问题 */
         .checkbox-group input[type="checkbox"] {
             width: 20px;
             height: 20px;
@@ -106,7 +105,6 @@
             z-index: 1;
         }
         
-        /* 自定义复选框样式确保可点击 */
         .checkbox-container {
             display: flex;
             align-items: center;
@@ -143,7 +141,6 @@
             opacity: 1;
         }
         
-        /* 隐藏原生复选框 */
         #hasFairy {
             position: absolute;
             opacity: 0;
@@ -443,7 +440,7 @@
             
             <div class="input-row">
                 <div class="input-group">
-                    <label>最大境域</label>
+                    <label>最大境域(填写能够挂机的最大境域)</label>
                     <input type="number" id="maxRealm" min="1" value="10" step="1">
                 </div>
                 <div class="input-group">
@@ -455,7 +452,6 @@
                 </div>
             </div>
             
-            <!-- 修复仙女复选框 -->
             <div class="checkbox-group" onclick="toggleFairy()">
                 <input type="checkbox" id="hasFairy" checked>
                 <span class="checkbox-custom"></span>
@@ -488,8 +484,8 @@
                         <th>排序</th>
                         <th>关卡组合<br>(境-难-倍)</th>
                         <th>转生证</th>
-                        <th>生命倍数</th>
                         <th>相差倍数</th>
+                        <th>生命倍数</th>
                     </tr>
                 </thead>
                 <tbody id="resultTable">
@@ -501,7 +497,6 @@
 
     <script>
         const GAME_CONFIG = {
-            // 修正：难度×4 而不是 ×2
             calcScore: (r, d, m, hasFairy = false) => {
                 const effectiveMultiple = hasFairy ? m + 1 : m;
                 return (r - 1) * 5 * effectiveMultiple + d * 4;
@@ -532,7 +527,6 @@
             
             const effectiveMultiple = hasFairy ? currM + 1 : currM;
             const baseRealmScore = (currR - 1) * 5;
-            // 修正：显示难度×4
             const scoreDetail = `(${currR-1}×5)×${effectiveMultiple}+${currD}×4`;
             document.getElementById('scoreDetail').innerText = scoreDetail;
 
@@ -620,8 +614,8 @@
                     <td>${index+1}</td>
                     <td><strong>${item.realm}-${item.diff}-${item.multiple}</strong></td>
                     <td>${item.score}<br><small>${scoreDetail}</small></td>
-                    <td>${formatScientific(item.life)}</td>
                     <td><strong>${diffMultipleDisplay}</strong></td>
+                    <td>${formatScientific(item.life)}</td>
                 `;
                 resultTable.appendChild(tr);
             });
