@@ -180,6 +180,34 @@
             min-width: 200px;
         }
         
+        .bonus-group {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .bonus-group label {
+            margin-right: 10px;
+            margin-bottom: 0;
+            color: #166534;
+        }
+        
+        .bonus-group input {
+            flex: 1;
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+        }
+        
+        .bonus-group input:focus {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+        
         .calculate-btn { 
             padding: 14px 24px; 
             background: linear-gradient(135deg, #165dff, #0d47a1); 
@@ -229,11 +257,20 @@
             border-left: 4px solid #165dff;
         }
         
+        .bonus-stat {
+            border-left-color: #22c55e;
+            background: linear-gradient(135deg, rgba(240, 253, 244, 0.8), rgba(220, 252, 231, 0.8));
+        }
+        
         .stat-item h4 {
             font-size: 13px;
             color: #4a5568;
             margin: 0 0 6px 0;
             font-weight: 600;
+        }
+        
+        .bonus-stat h4 {
+            color: #166534;
         }
         
         .stat-value {
@@ -242,10 +279,18 @@
             font-weight: 700;
         }
         
+        .bonus-stat .stat-value {
+            color: #166534;
+        }
+        
         .stat-detail {
             font-size: 12px;
             color: #64748b;
             margin-top: 4px;
+        }
+        
+        .bonus-stat .stat-detail {
+            color: #15803d;
         }
         
         .section-title {
@@ -279,7 +324,7 @@
             width: 100%; 
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 600px;
+            min-width: 700px;
         }
         
         th, td { 
@@ -389,6 +434,11 @@
             border-radius: 4px;
         }
         
+        .bonus-formula {
+            color: #166534;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
         /* 移动端优化 */
         @media (max-width: 768px) {
             .container {
@@ -434,12 +484,16 @@
                 gap: 10px;
             }
             
-            .checkbox-group, .filter-select {
+            .checkbox-group, .filter-select, .bonus-group {
                 min-width: 100%;
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            table {
+                min-width: 700px;
             }
         }
         
@@ -469,13 +523,17 @@
                 padding: 8px 10px;
             }
             
+            .bonus-group {
+                padding: 8px 10px;
+            }
+            
             .calculate-btn {
                 padding: 12px;
                 font-size: 14px;
             }
             
             table {
-                min-width: 500px;
+                min-width: 650px;
             }
         }
         
@@ -490,7 +548,7 @@
             }
             
             table {
-                min-width: 450px;
+                min-width: 600px;
             }
         }
         
@@ -529,6 +587,32 @@
         .table-container {
             animation: fadeIn 0.3s ease-out;
         }
+        
+        .bonus-multiplier {
+            color: #166534;
+            font-weight: 700;
+            background: rgba(34, 197, 94, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        
+        .bonus-score {
+            color: #166534;
+            font-weight: 700;
+        }
+        
+        .score-exact {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .score-detail {
+            font-size: 11px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -562,12 +646,20 @@
                     <label for="hasFairy">有仙女（结算倍数+1）</label>
                 </div>
                 
+                <!-- 这里修改了默认选项 -->
                 <div class="input-group filter-select">
                     <label>筛选条件</label>
                     <select id="diffType">
                         <option value="below">生命≤当前</option>
-                        <option value="both">显示最相近</option>
+                        <option value="both" selected>显示最相近的</option>
                     </select>
+                </div>
+            </div>
+            
+            <div class="options-row">
+                <div class="bonus-group">
+                    <label>加成后转生证</label>
+                    <input type="number" id="bonusScore" min="1" step="1" placeholder="输入实际获得数量">
                 </div>
             </div>
             
@@ -578,6 +670,9 @@
                 <div class="formula-content">
                     基础公式：<span class="formula-highlight">{(境域-1)×5} × 倍数 + 难度×2</span><br>
                     <small>如有仙女则实际倍数为显示倍数+1</small>
+                    <br><br>
+                    加成计算：<span class="bonus-formula formula-highlight">加成倍数 = 实际获得转生证 ÷ 基础转生证</span><br>
+                    <small>加成后转生证 = 基础转生证 × 加成倍数</small>
                 </div>
             </div>
             
@@ -587,9 +682,16 @@
         <div class="stats-box">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <h4>当前转生证</h4>
-                    <div class="stat-value" id="currScore">0</div>
+                    <h4>基础转生证</h4>
+                    <div class="stat-value score-exact" id="currScore">0</div>
                     <div class="stat-detail" id="scoreDetail"></div>
+                </div>
+                <div class="stat-item bonus-stat">
+                    <h4>加成后转生证</h4>
+                    <div class="stat-value score-exact" id="actualScore">0</div>
+                    <div class="stat-detail">
+                        加成倍数: <span id="bonusMultiplier">1.00×</span>
+                    </div>
                 </div>
                 <div class="stat-item">
                     <h4>生命倍数阈值</h4>
@@ -612,13 +714,14 @@
                     <tr>
                         <th>排序</th>
                         <th>关卡组合<br>(境-难-倍)</th>
-                        <th>转生证</th>
+                        <th>基础转生证</th>
+                        <th>加成后转生证</th>
                         <th>相差倍数</th>
                         <th>生命倍数</th>
                     </tr>
                 </thead>
                 <tbody id="resultTable">
-                    <tr><td colspan="5" class="no-data">点击计算按钮，展示结果</td></tr>
+                    <tr><td colspan="6" class="no-data">点击计算按钮，展示结果</td></tr>
                 </tbody>
             </table>
         </div>
@@ -626,7 +729,7 @@
 
     <script>
         const GAME_CONFIG = {
-            // 修正：难度×2
+            // 基础转生证计算公式：难度×2
             calcScore: (r, d, m, hasFairy = false) => {
                 const effectiveMultiple = hasFairy ? m + 1 : m;
                 return (r - 1) * 5 * effectiveMultiple + d * 2;
@@ -648,30 +751,46 @@
             const hasFairy = document.getElementById('hasFairy').checked;
             const maxRealm = parseInt(document.getElementById('maxRealm').value);
             const diffType = document.getElementById('diffType').value;
+            const bonusScoreInput = document.getElementById('bonusScore').value;
 
-            const currScore = GAME_CONFIG.calcScore(currR, currD, currM, hasFairy);
+            // 计算当前关卡的基础转生证和生命倍数
+            const baseScore = GAME_CONFIG.calcScore(currR, currD, currM, hasFairy);
             const currLife = GAME_CONFIG.calcLife(currR, currD, currM);
             
-            document.getElementById('currScore').innerText = currScore;
-            document.getElementById('currLife').innerText = formatScientific(currLife);
+            // 计算加成倍数
+            let bonusMultiplier = 1.0;
+            let actualScore = baseScore;
             
+            if (bonusScoreInput && !isNaN(parseFloat(bonusScoreInput)) && parseFloat(bonusScoreInput) > 0) {
+                actualScore = parseFloat(bonusScoreInput);
+                bonusMultiplier = actualScore / baseScore;
+            }
+            
+            // 显示当前关卡信息
+            document.getElementById('currScore').innerText = formatExactNumber(baseScore);
+            document.getElementById('currLife').innerText = formatScientific(currLife);
+            document.getElementById('actualScore').innerText = formatExactNumber(actualScore);
+            document.getElementById('bonusMultiplier').innerText = formatMultiplier(bonusMultiplier) + '×';
+            
+            // 显示转生证计算详情
             const effectiveMultiple = hasFairy ? currM + 1 : currM;
             const baseRealmScore = (currR - 1) * 5;
-            // 修正：显示难度×2
             const scoreDetail = `(${currR-1}×5)×${effectiveMultiple} + ${currD}×2`;
             document.getElementById('scoreDetail').innerText = scoreDetail;
 
             const validLevels = [];
             
+            // 搜索符合条件的关卡
             for(let realm = 1; realm <= maxRealm; realm++) {
                 for(let diff = 1; diff <= GAME_CONFIG.maxDiff; diff++) {
                     for(let multiple = 1; multiple <= GAME_CONFIG.maxMultiple; multiple++) {
                         if(realm === currR && diff === currD && multiple === currM) continue;
                         
-                        const levelScore = GAME_CONFIG.calcScore(realm, diff, multiple, false);
+                        const levelBaseScore = GAME_CONFIG.calcScore(realm, diff, multiple, false);
                         const levelLife = GAME_CONFIG.calcLife(realm, diff, multiple);
                         
-                        if(levelScore > currScore) {
+                        // 核心条件：基础转生证更高
+                        if(levelBaseScore > baseScore) {
                             let diffMultiple;
                             let isHigher = false;
                             
@@ -690,27 +809,33 @@
                                 }
                             }
                             
+                            // 计算加成后转生证
+                            const levelBonusScore = levelBaseScore * bonusMultiplier;
+                            
                             validLevels.push({
                                 realm, diff, multiple,
-                                score: levelScore,
+                                baseScore: levelBaseScore,
+                                bonusScore: levelBonusScore,
                                 life: levelLife,
                                 diffMultiple: diffMultiple,
                                 isHigher: isHigher,
-                                realmBaseScore: (realm - 1) * 5
+                                realmBaseScore: (realm - 1) * 5,
+                                bonusMultiplier: bonusMultiplier
                             });
                         }
                     }
                 }
             }
 
-            document.getElementById('totalLevels').innerText = validLevels.length;
+            document.getElementById('totalLevels').innerText = formatExactNumber(validLevels.length);
 
             if(validLevels.length === 0) {
                 const resultTable = document.getElementById('resultTable');
-                resultTable.innerHTML = '<tr><td colspan="5" class="no-data">暂无符合条件的关卡</td></tr>';
+                resultTable.innerHTML = '<tr><td colspan="6" class="no-data">暂无符合条件的关卡</td></tr>';
                 return;
             }
 
+            // 核心排序：先按相差倍数从小到大（越接近1越相似），再按基础转生证从高到低
             validLevels.sort((a, b) => {
                 const aDiffFromOne = Math.abs(a.diffMultiple - 1);
                 const bDiffFromOne = Math.abs(b.diffMultiple - 1);
@@ -718,7 +843,7 @@
                 if (aDiffFromOne !== bDiffFromOne) {
                     return aDiffFromOne - bDiffFromOne;
                 }
-                return b.score - a.score;
+                return b.baseScore - a.baseScore;
             });
 
             const top10Closest = validLevels.slice(0, 10);
@@ -731,21 +856,30 @@
                     tr.className = 'closest';
                 }
                 
+                // 格式化相差倍数显示
                 let diffMultipleDisplay;
                 if (item.isHigher) {
-                    diffMultipleDisplay = `×${formatNumber(item.diffMultiple)}`;
+                    diffMultipleDisplay = `×${formatMultiplier(item.diffMultiple)}`;
                 } else {
-                    diffMultipleDisplay = `÷${formatNumber(item.diffMultiple)}`;
+                    diffMultipleDisplay = `÷${formatMultiplier(item.diffMultiple)}`;
                 }
                 
                 const realmBaseScore = item.realmBaseScore;
-                // 修正：显示难度×2
                 const scoreDetail = `${realmBaseScore}×${item.multiple} + ${item.diff}×2`;
+                const bonusMultiplierText = item.bonusMultiplier !== 1.0 ? 
+                    `<span class="bonus-multiplier">×${formatMultiplier(item.bonusMultiplier)}</span>` : '';
                 
                 tr.innerHTML = `
                     <td>${index+1}</td>
                     <td><strong>${item.realm}-${item.diff}-${item.multiple}</strong></td>
-                    <td>${item.score}<br><small>${scoreDetail}</small></td>
+                    <td>
+                        <div class="score-exact">${formatExactNumber(item.baseScore)}</div>
+                        <div class="score-detail">${scoreDetail}</div>
+                    </td>
+                    <td class="bonus-score">
+                        <div class="score-exact">${formatExactNumber(item.bonusScore)}</div>
+                        ${bonusMultiplierText}
+                    </td>
                     <td><strong>${diffMultipleDisplay}</strong></td>
                     <td>${formatScientific(item.life)}</td>
                 `;
@@ -760,19 +894,35 @@
             checkbox.dispatchEvent(event);
         }
         
+        // 格式化转生证：精确到个位数，使用千位分隔符
+        function formatExactNumber(num) {
+            if (num === 0) return "0";
+            return Math.round(num).toLocaleString();
+        }
+        
+        // 格式化倍数：保留2-4位小数，根据数值大小决定
+        function formatMultiplier(num) {
+            if (num < 10) {
+                // 小于10：保留3位小数
+                return num.toFixed(3).replace(/\.?0+$/, '');
+            } else if (num < 100) {
+                // 10-100：保留2位小数
+                return num.toFixed(2).replace(/\.?0+$/, '');
+            } else {
+                // 大于等于100：保留1位小数
+                return num.toFixed(1).replace(/\.?0+$/, '');
+            }
+        }
+        
+        // 格式化科学计数法显示
         function formatScientific(num) {
             if (num === 0) return "0";
-            if (num < 1e6) return num.toLocaleString();
+            if (num < 1e6) return formatExactNumber(num);
             
             const exp = Math.floor(Math.log10(num));
             const coeff = num / Math.pow(10, exp);
-            return `${coeff.toFixed(2)}e${exp}`;
-        }
-        
-        function formatNumber(num) {
-            if (num < 10) return num.toFixed(2);
-            if (num < 100) return num.toFixed(1);
-            return Math.round(num).toString();
+            // 系数保留3位小数
+            return `${coeff.toFixed(3)}e${exp}`;
         }
 
         window.onload = calculateClosestLevels;
